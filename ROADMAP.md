@@ -118,8 +118,3 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
   - Multijoueur local, mini‑map, virages, météo, boutique/monnaie
 
 ---
-
-Si tu veux, je peux :
-- transformer chaque bullet en issues GitHub (avec priorités et labels),
-- créer une branche et proposer un fichier mis à jour (`ROADMAP.md`) via un commit,
-- ou réorganiser la roadmap selon tes priorités exactes.
