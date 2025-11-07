@@ -463,6 +463,14 @@
                 <input type="checkbox" id="muteToggle" />
                 <label for="muteToggle">Muet</label>
             </div>
+            <div style="margin-top: 16px; color: #fff;">
+                <label for="engineVolume" style="display:block; margin-bottom:6px;">Volume moteur</label>
+                <input id="engineVolume" type="range" min="0" max="1" step="0.01" value="0.22" style="width: 240px;" />
+            </div>
+            <div style="margin-top: 12px; color: #fff;">
+                <label for="fxVolume" style="display:block; margin-bottom:6px;">Volume effets</label>
+                <input id="fxVolume" type="range" min="0" max="1" step="0.01" value="0.4" style="width: 240px;" />
+            </div>
         </div>
 
         <div id="swipeHint">Astuce: balayez gauche/droite pour tourner, haut pour accélérer, bas pour freiner</div>
@@ -497,7 +505,127 @@
         const controlModeSelect = document.getElementById('controlModeSelect');
         const pauseDifficultySelect = document.getElementById('pauseDifficultySelect');
         const muteToggle = document.getElementById('muteToggle');
+        const engineVolume = document.getElementById('engineVolume');
+        const fxVolume = document.getElementById('fxVolume');
         const swipeHint = document.getElementById('swipeHint');
+        let isMobileLike = false; // set later after DOM ready
+
+        let audio = {
+            ctx: null,
+            masterGain: null,
+            engineOsc: null,
+            engineGain: null,
+            fxGain: null,
+            enabled: false
+        };
+
+        function initAudio() {
+            if (audio.ctx) return;
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return;
+            audio.ctx = new Ctx();
+            audio.masterGain = audio.ctx.createGain();
+            audio.masterGain.gain.value = 0.8;
+            audio.masterGain.connect(audio.ctx.destination);
+
+            audio.engineOsc = audio.ctx.createOscillator();
+            audio.engineOsc.type = 'sawtooth';
+            audio.engineOsc.frequency.value = 120;
+            audio.engineGain = audio.ctx.createGain();
+            audio.engineGain.gain.value = 0;
+            audio.engineOsc.connect(audio.engineGain).connect(audio.masterGain);
+            audio.fxGain = audio.ctx.createGain();
+            audio.fxGain.gain.value = (fxVolume ? parseFloat(fxVolume.value) : 0.4) || 0.4;
+            audio.fxGain.connect(audio.masterGain);
+            try { audio.engineOsc.start(); } catch (_) {}
+            audio.enabled = true;
+            setMuted(game.muted);
+        }
+
+        function setMuted(m) {
+            game.muted = !!m;
+            try { localStorage.setItem('race_muted', game.muted ? '1' : '0'); } catch(_) {}
+            if (!audio.ctx) return;
+            const target = game.muted ? 0 : 0.8;
+            audio.masterGain.gain.setTargetAtTime(target, audio.ctx.currentTime, 0.05);
+        }
+
+        function updateEngineSound() {
+            if (!audio.ctx || !audio.engineOsc || !audio.engineGain) return;
+            const effective = Math.max(0, game.speed + player.velocity);
+            const freq = 80 + effective * 60;
+            const base = (!game.isRunning || game.isPaused) ? 0 : Math.min(0.22, 0.02 + effective * 0.03);
+            const scale = engineVolume ? parseFloat(engineVolume.value || '1') : 1;
+            const vol = base * Math.max(0, Math.min(1, isNaN(scale) ? 1 : scale));
+            audio.engineOsc.frequency.setTargetAtTime(freq, audio.ctx.currentTime, 0.05);
+            audio.engineGain.gain.setTargetAtTime(vol, audio.ctx.currentTime, 0.08);
+        }
+
+        function playNoiseBurst(duration = 0.2, gainVal = 0.6) {
+            if (!audio.ctx || game.muted || !game.isRunning || game.isPaused) return;
+            const length = Math.max(0.05, duration);
+            const buffer = audio.ctx.createBuffer(1, Math.floor(audio.ctx.sampleRate * length), audio.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) {
+                const t = i / data.length;
+                data[i] = (Math.random() * 2 - 1) * (1 - t);
+            }
+            const src = audio.ctx.createBufferSource();
+            src.buffer = buffer;
+            const gain = audio.ctx.createGain();
+            const scale = fxVolume ? parseFloat(fxVolume.value || '1') : 1;
+            gain.gain.value = gainVal * Math.max(0, Math.min(1, isNaN(scale) ? 1 : scale));
+            src.connect(gain).connect(audio.fxGain || audio.masterGain);
+            src.start();
+        }
+
+        function playSweep(startFreq, endFreq, duration = 0.3, type = 'sine', gainVal = 0.3) {
+            if (!audio.ctx || game.muted || !game.isRunning || game.isPaused) return;
+            const osc = audio.ctx.createOscillator();
+            const g = audio.ctx.createGain();
+            osc.type = type;
+            osc.frequency.value = startFreq;
+            const scale = fxVolume ? parseFloat(fxVolume.value || '1') : 1;
+            g.gain.value = gainVal * Math.max(0, Math.min(1, isNaN(scale) ? 1 : scale));
+            osc.connect(g).connect(audio.fxGain || audio.masterGain);
+            const t0 = audio.ctx.currentTime;
+            osc.frequency.setValueAtTime(startFreq, t0);
+            osc.frequency.linearRampToValueAtTime(endFreq, t0 + duration);
+            g.gain.setValueAtTime(g.gain.value, t0);
+            g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+            osc.start(t0);
+            osc.stop(t0 + duration + 0.02);
+        }
+
+        function playCollision() {
+            initAudio();
+            if (!game.isRunning || game.isPaused) return;
+            playNoiseBurst(0.2, 0.7);
+        }
+
+        function playPowerUp(type) {
+            initAudio();
+            if (!game.isRunning || game.isPaused) return;
+            if (type === 'shield') {
+                playSweep(900, 600, 0.22, 'sine', 0.25);
+                playSweep(1200, 800, 0.22, 'sine', 0.15);
+            } else {
+                playSweep(300, 900, 0.35, 'sawtooth', 0.22);
+            }
+        }
+
+        try {
+            const m = localStorage.getItem('race_muted');
+            if (m === '1') { game.muted = true; }
+        } catch(_) {}
+
+        // Load persisted volumes
+        try {
+            const ev = localStorage.getItem('race_engine_vol');
+            const fxv = localStorage.getItem('race_fx_vol');
+            if (engineVolume && ev !== null) engineVolume.value = ev;
+            if (fxVolume && fxv !== null) fxVolume.value = fxv;
+        } catch(_) {}
 
         function resizeCanvas() {
             const maxWidth = window.innerWidth - 40;
@@ -787,26 +915,38 @@
 
         function initWeather() {
             game.weatherParticles = [];
-            const count = game.weather === 'rain' ? 100 : 80;
+            const defaultCount = game.weather === 'rain' ? 100 : 80;
+            const limit = (game.limits && typeof game.limits.weatherCount === 'number') ? game.limits.weatherCount : defaultCount;
+            const base = game.weather === 'rain' ? limit : Math.floor(limit * 0.8);
+            const count = Math.max(0, base || defaultCount);
             for (let i = 0; i < count; i++) {
                 game.weatherParticles.push(new WeatherParticle(game.weather));
             }
         }
 
         function createExplosion(x, y) {
-            for (let i = 0; i < 20; i++) {
+            const cap = (game.limits && typeof game.limits.maxParticles === 'number') ? game.limits.maxParticles : 220;
+            const remaining = Math.max(0, cap - game.particles.length);
+            const toAdd = Math.min(20, remaining);
+            for (let i = 0; i < toAdd; i++) {
                 game.particles.push(new Particle(x, y, 'explosion'));
             }
         }
 
         function createSmoke(x, y) {
-            if (Math.random() > 0.7) {
+            const cap = (game.limits && typeof game.limits.maxParticles === 'number') ? game.limits.maxParticles : 220;
+            if (game.particles.length >= cap) return;
+            const prob = isMobileLike ? 0.85 : 0.7;
+            if (Math.random() > prob) {
                 game.particles.push(new Particle(x, y, 'smoke'));
             }
         }
 
         function createSparkles(x, y) {
-            for (let i = 0; i < 10; i++) {
+            const cap = (game.limits && typeof game.limits.maxParticles === 'number') ? game.limits.maxParticles : 220;
+            const remaining = Math.max(0, cap - game.particles.length);
+            const toAdd = Math.min(10, remaining);
+            for (let i = 0; i < toAdd; i++) {
                 game.particles.push(new Particle(x, y, 'sparkle'));
             }
         }
@@ -988,7 +1128,10 @@
         }
 
         function spawnBackgroundObject() {
-            if (Math.random() > 0.97) {
+            const cap = (game.limits && typeof game.limits.maxBackground === 'number') ? game.limits.maxBackground : 24;
+            const prob = (game.spawn && typeof game.spawn.backgroundProb === 'number') ? game.spawn.backgroundProb : 0.97;
+            if (game.backgroundObjects.length >= cap) return;
+            if (Math.random() > prob) {
                 game.backgroundObjects.push(new BackgroundObject());
             }
         }
@@ -1077,6 +1220,7 @@
                 };
 
                 if (checkCollision(playerRect, obstacleRect)) {
+                    playCollision();
                     if (!player.hasShield) {
                         createExplosion(player.x, player.y);
                         gameOver('Joueur 1');
@@ -1096,6 +1240,7 @@
                     };
 
                     if (checkCollision(player2Rect, obstacleRect)) {
+                        playCollision();
                         if (!player2.hasShield) {
                             createExplosion(player2.x, player2.y);
                             gameOver('Joueur 2');
@@ -1153,6 +1298,10 @@
                     game.particles.splice(i, 1);
                 }
             }
+            const cap = (game.limits && typeof game.limits.maxParticles === 'number') ? game.limits.maxParticles : 220;
+            if (game.particles.length > cap) {
+                game.particles.splice(0, game.particles.length - cap);
+            }
         }
 
         function updateBackgroundObjects() {
@@ -1162,6 +1311,10 @@
                     game.backgroundObjects.splice(i, 1);
                 }
             }
+            const cap = (game.limits && typeof game.limits.maxBackground === 'number') ? game.limits.maxBackground : 24;
+            if (game.backgroundObjects.length > cap) {
+                game.backgroundObjects.splice(0, game.backgroundObjects.length - cap);
+            }
         }
 
         function updateWeather() {
@@ -1169,6 +1322,7 @@
         }
 
         function activatePowerUp(type, playerName = 'player1') {
+            playPowerUp(type);
             if (type === 'shield') {
                 if (playerName === 'player1') {
                     player.hasShield = true;
@@ -1352,6 +1506,7 @@
             game.powerUps.forEach(drawPowerUp);
             game.particles.forEach(particle => particle.draw());
             drawPlayer();
+            updateEngineSound();
 
             requestAnimationFrame(gameLoop);
         }
@@ -1493,6 +1648,7 @@
                 game.isMultiplayer = false;
                 player2ScoreDisplay.style.display = 'none';
                 menuScreen.style.display = 'none';
+                initAudio();
                 resetGame();
             });
 
@@ -1500,6 +1656,7 @@
                 game.isMultiplayer = true;
                 player2ScoreDisplay.style.display = 'block';
                 menuScreen.style.display = 'none';
+                initAudio();
                 resetGame();
             });
 
@@ -1519,18 +1676,21 @@
 
             shareTwitter.addEventListener('click', () => {
                 const text = `Je viens de scorer ${Math.floor(game.score)} points au Jeu de Course ! 🏎️ Peux-tu faire mieux ?`;
-                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+                const gameUrl = 'https://kimku003.github.io/games/race.html';
+                const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(gameUrl)}&text=${encodeURIComponent(text)}`;
                 window.open(url, '_blank');
             });
 
             shareWhatsApp.addEventListener('click', () => {
                 const text = `Je viens de scorer ${Math.floor(game.score)} points au Jeu de Course ! 🏎️ Peux-tu faire mieux ?`;
-                const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                const gameUrl = 'https://kimku003.github.io/games/race.html';
+                const url = `https://wa.me/?text=${encodeURIComponent(text + ' ' + gameUrl)}`;
                 window.open(url, '_blank');
             });
 
             shareFacebook.addEventListener('click', () => {
-                const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+                const gameUrl = 'https://kimku003.github.io/games/race.html';
+                const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(gameUrl)}`;
                 window.open(url, '_blank');
             });
         };
@@ -1559,6 +1719,7 @@
         });
 
         resumeButton.addEventListener('click', () => {
+            initAudio();
             if (game.isPaused) togglePause();
         });
 
@@ -1567,12 +1728,18 @@
         setupMenu();
         setupShareButtons();
         initWeather();
-        // Show pause button on touch devices and small screens
-        if (window.matchMedia('(hover: none), (max-width: 768px)').matches) {
-            pauseButton.style.display = 'block';
-        } else {
-            pauseButton.style.display = 'block';
-        }
+        // Device profile & pause button
+        isMobileLike = window.matchMedia('(hover: none), (max-width: 768px)').matches;
+        // Basic quality profile (mobile = fewer effects)
+        game.limits = {
+            maxParticles: isMobileLike ? 90 : 220,
+            maxBackground: isMobileLike ? 10 : 24,
+            weatherCount: isMobileLike ? 60 : 100
+        };
+        game.spawn = {
+            backgroundProb: isMobileLike ? 0.99 : 0.97
+        };
+        pauseButton.style.display = 'block';
 
         const updateControlVisibility = () => {
             const tc = document.getElementById('touchControls');
@@ -1595,8 +1762,17 @@
         });
 
         muteToggle.addEventListener('change', () => {
-            game.muted = muteToggle.checked;
-            try { localStorage.setItem('race_muted', game.muted ? '1' : '0'); } catch(_) {}
+            initAudio();
+            setMuted(muteToggle.checked);
+        });
+
+        engineVolume.addEventListener('input', () => {
+            try { localStorage.setItem('race_engine_vol', engineVolume.value); } catch(_) {}
+            updateEngineSound();
+        });
+
+        fxVolume.addEventListener('input', () => {
+            try { localStorage.setItem('race_fx_vol', fxVolume.value); } catch(_) {}
         });
 
         updateControlVisibility();
@@ -1606,6 +1782,8 @@
             if (controlModeSelect) controlModeSelect.value = game.controlMode;
             if (pauseDifficultySelect) pauseDifficultySelect.value = game.difficulty;
             if (muteToggle) muteToggle.checked = !!game.muted;
+            if (engineVolume) engineVolume.value = (localStorage.getItem('race_engine_vol') ?? engineVolume.value);
+            if (fxVolume) fxVolume.value = (localStorage.getItem('race_fx_vol') ?? fxVolume.value);
         }
 
         function maybeShowSwipeHint() {
