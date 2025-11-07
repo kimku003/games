@@ -16,17 +16,17 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
 ---
 
 ## 🎨 Améliorations visuelles
-- [ ] Effets de particules
+- [x] Effets de particules
   - Fumée derrière les voitures
   - Explosions lors des collisions
   - Étincelles pour les power‑ups
-- [ ] Arrière‑plan animé
+- [x] Arrière‑plan animé
   - Décor défilant : arbres, bâtiments, montagnes
-- [ ] Modèles de véhicules variés
+- [x] Modèles de véhicules variés
   - Différents designs pour le joueur et les obstacles
-- [ ] Effets météo
+- [x] Effets météo
   - Pluie, neige, brouillard (impact sur la visibilité)
-- [ ] Animations fluides
+- [x] Animations fluides
   - Transitions (game over, apparition/disparition des power‑ups)
 - [ ] Mode nuit
   - Phares éclairant une zone limitée
@@ -40,7 +40,7 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
   - Ralentissement du temps
   - Aimant à pièces
   - Réparation (restaure la vie ou l'état du véhicule)
-- [ ] Obstacles variés
+- [x] Obstacles variés
   - Camions lents
   - Motos rapides
   - Flaques d'huile qui font glisser
@@ -48,7 +48,7 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
   - Plus de 3 voies pour plus de variété
 - [ ] Virages de la route
   - Piste qui tourne légèrement (ajoute du dynamisme)
-- [ ] Mode multijoueur local (technique)
+- [x] Mode multijoueur local (technique)
   - Deux joueurs côte à côte (écran partagé ou contrôles partagés)
 
 ---
@@ -64,13 +64,13 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
 ---
 
 ## 📊 Progression et scoring
-- [ ] Sauvegarde du high score
+- [x] Sauvegarde du high score
   - localStorage pour le meilleur score
 - [ ] Tableau des records
   - Top 5 des meilleurs scores (affichage et reset)
 - [ ] Système de pièces
   - Ramasser des pièces pour acheter des améliorations (warp shop)
-- [ ] Niveaux de difficulté
+- [x] Niveaux de difficulté
   - Facile, Moyen, Difficile (sélection au démarrage)
 - [ ] Missions / objectifs
   - Ex. : "Parcourir 1000m sans collision", "Ramasser 5 power‑ups"
@@ -78,27 +78,27 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
 ---
 
 ## 🎯 Interface utilisateur
-- [ ] Écran de démarrage
+- [x] Écran de démarrage
   - Menu avec instructions, sélection de difficulté, et options
-- [ ] Pause
+- [x] Pause
   - Touche P pour mettre en pause (ou bouton mobile)
-- [ ] Indicateur de vitesse
+- [x] Indicateur de vitesse
   - Compteur de vitesse visuel
 - [ ] Mini‑map
   - Vue d'ensemble de la piste et des obstacles à venir
 - [ ] Barre de vie
   - Visible si le système de vies est activé
-- [ ] Thèmes personnalisables
+- [x] Thèmes personnalisables
   - Changer la couleur/design de la voiture (cosmétiques)
 
 ---
 
 ## 🛠️ Améliorations techniques
-- [ ] Contrôles tactiles
+- [x] Contrôles tactiles
   - Boutons virtuels et support swipe pour mobile
 - [ ] Optimisation mobile
   - Performance, réduction des allocations mémoire, images adaptées
-- [ ] Partage de score
+- [x] Partage de score
   - Boutons pour partager le record sur les réseaux sociaux
 - [ ] Architecture et qualité
   - Séparer logique de rendu, tests unitaires sur la logique de jeu

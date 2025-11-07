@@ -46,6 +46,18 @@
             z-index: 10;
         }
 
+        #speedDisplay {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+            opacity: 0.9;
+        }
+
         #powerUpDisplay {
             position: absolute;
             top: 20px;
@@ -106,6 +118,68 @@
         #gameOverScreen.show {
             animation: fadeIn 0.5s ease forwards, shake 0.3s ease 0.2s;
             opacity: 1;
+        }
+
+        #swipeHint {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 21;
+            display: none;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        }
+
+        #pauseOverlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px 40px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            z-index: 22;
+        }
+
+        #pauseOverlay h2 {
+            color: #ffffff;
+            font-size: 36px;
+            margin-bottom: 16px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        #resumeButton {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #pauseButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 21;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.6);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
         }
 
         #gameOverScreen h1 {
@@ -324,14 +398,16 @@
                 display: flex;
             }
         }
-    </style>
-</head>
-<body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas>
-        <div id="scoreDisplay">Score: 0</div>
-        <div id="player2Score">Joueur 2: 0</div>
-        <div id="powerUpDisplay" style="display: none;"></div>
+        </style>
+    </head>
+    <body>
+        <div id="gameContainer">
+            <canvas id="gameCanvas"></canvas>
+            <div id="scoreDisplay">Score: 0</div>
+            <div id="speedDisplay">Vitesse: 0 km/h</div>
+            <div id="player2Score">Joueur 2: 0</div>
+            <div id="powerUpDisplay" style="display: none;"></div>
+            <button id="pauseButton">⏸️</button>
         
         <div id="menuScreen">
             <h2>🏎️ JEU DE COURSE</h2>
@@ -355,6 +431,7 @@
         <div id="gameOverScreen">
             <h1>GAME OVER</h1>
             <p id="finalScore">Score Final: 0</p>
+            <p id="bestScore" style="color:#fff; margin-top: -10px; margin-bottom: 20px;">Record: 0</p>
             <div class="share-buttons">
                 <button class="share-btn" id="shareTwitter">🐦 Twitter</button>
                 <button class="share-btn whatsapp" id="shareWhatsApp">💬 WhatsApp</button>
@@ -363,14 +440,41 @@
             <button id="restartButton">RECOMMENCER</button>
         </div>
         
+        <div id="pauseOverlay">
+            <h2>Pause</h2>
+            <p style="color: #fff; margin-bottom: 16px;">Appuyez sur P ou cliquez sur Reprendre</p>
+            <button id="resumeButton">Reprendre</button>
+            <div style="margin-top: 16px; color: #fff;">
+                <label for="controlModeSelect" style="display:block; margin-bottom:6px;">Mode de contrôle</label>
+                <select id="controlModeSelect" style="padding:8px 10px; border-radius:8px; border:1px solid #666; background:#222; color:#fff;">
+                    <option value="buttons">Touches</option>
+                    <option value="swipe">Swipe</option>
+                </select>
+            </div>
+            <div style="margin-top: 16px; color: #fff;">
+                <label for="pauseDifficultySelect" style="display:block; margin-bottom:6px;">Difficulté</label>
+                <select id="pauseDifficultySelect" style="padding:8px 10px; border-radius:8px; border:1px solid #666; background:#222; color:#fff;">
+                    <option value="easy">Facile</option>
+                    <option value="medium" selected>Moyen</option>
+                    <option value="hard">Difficile</option>
+                </select>
+            </div>
+            <div style="margin-top: 16px; color: #fff; display:flex; align-items:center; gap:8px; justify-content:center;">
+                <input type="checkbox" id="muteToggle" />
+                <label for="muteToggle">Muet</label>
+            </div>
+        </div>
+
+        <div id="swipeHint">Astuce: balayez gauche/droite pour tourner, haut pour accélérer, bas pour freiner</div>
+        
         <div id="touchControls">
             <div class="touch-row">
-                <div class="touch-btn" id="upBtn">⬆️</div>
+                <div class="touch-btn" id="upBtn"></div>
             </div>
             <div class="touch-row">
-                <div class="touch-btn" id="leftBtn">⬅️</div>
-                <div class="touch-btn" id="downBtn">⬇️</div>
-                <div class="touch-btn" id="rightBtn">➡️</div>
+                <div class="touch-btn" id="leftBtn"></div>
+                <div class="touch-btn" id="downBtn"></div>
+                <div class="touch-btn" id="rightBtn"></div>
             </div>
         </div>
     </div>
@@ -379,12 +483,21 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('scoreDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
         const player2ScoreDisplay = document.getElementById('player2Score');
         const powerUpDisplay = document.getElementById('powerUpDisplay');
         const gameOverScreen = document.getElementById('gameOverScreen');
         const menuScreen = document.getElementById('menuScreen');
         const finalScoreText = document.getElementById('finalScore');
         const restartButton = document.getElementById('restartButton');
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        const pauseButton = document.getElementById('pauseButton');
+        const resumeButton = document.getElementById('resumeButton');
+        const bestScoreText = document.getElementById('bestScore');
+        const controlModeSelect = document.getElementById('controlModeSelect');
+        const pauseDifficultySelect = document.getElementById('pauseDifficultySelect');
+        const muteToggle = document.getElementById('muteToggle');
+        const swipeHint = document.getElementById('swipeHint');
 
         function resizeCanvas() {
             const maxWidth = window.innerWidth - 40;
@@ -425,7 +538,14 @@
             weatherParticles: [],
             isMultiplayer: false,
             player2Score: 0,
-            customColor: '#cc0000'
+            customColor: '#cc0000',
+            isPaused: false,
+            difficulty: 'medium',
+            obstacleInterval: 1500,
+            powerUpInterval: 5000,
+            controlMode: 'buttons',
+            swipe: { active: false, startX: 0, startY: 0, lastTrigger: 0 },
+            muted: false
         };
 
         const player = {
@@ -1089,6 +1209,12 @@
             }
         }
 
+        function updateSpeedometer() {
+            const effective = Math.max(0, game.speed + player.velocity);
+            const kmh = Math.floor(effective * 15);
+            speedDisplay.textContent = `Vitesse: ${kmh} km/h`;
+        }
+
         function increaseSpeed() {
             const currentTime = Date.now();
             if (currentTime - game.lastSpeedIncrease > 10000) {
@@ -1114,6 +1240,17 @@
             } else {
                 finalScoreText.textContent = `Score Final: ${Math.floor(game.score)}`;
             }
+
+            try {
+                const best = parseInt(localStorage.getItem('race_best') || '0', 10);
+                const current = Math.floor(game.score);
+                if (current > best) {
+                    localStorage.setItem('race_best', String(current));
+                    bestScoreText.textContent = `NOUVEAU RECORD: ${current}`;
+                } else {
+                    bestScoreText.textContent = `Record: ${best}`;
+                }
+            } catch (_) {}
         }
 
         function resetGame() {
@@ -1130,6 +1267,7 @@
             game.particles = [];
             game.backgroundObjects = [];
             game.weather = 'rain';
+            game.isPaused = false;
             
             const carTypeKeys = Object.keys(carTypes);
             player.carType = carTypeKeys[Math.floor(Math.random() * carTypeKeys.length)];
@@ -1157,6 +1295,7 @@
             gameOverScreen.style.display = 'none';
             gameOverScreen.classList.remove('show');
             powerUpDisplay.style.display = 'none';
+            pauseOverlay.style.display = 'none';
             
             initWeather();
             gameLoop();
@@ -1167,6 +1306,10 @@
 
         function gameLoop() {
             if (!game.isRunning) return;
+            if (game.isPaused) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1185,12 +1328,12 @@
             updateWeather();
 
             const now = Date.now();
-            if (now - lastObstacleSpawn > 1500) {
+            if (now - lastObstacleSpawn > game.obstacleInterval) {
                 spawnObstacle();
                 lastObstacleSpawn = now;
             }
 
-            if (now - lastPowerUpSpawn > 5000 + Math.random() * 5000) {
+            if (now - lastPowerUpSpawn > game.powerUpInterval + Math.random() * 2000) {
                 spawnPowerUp();
                 lastPowerUpSpawn = now;
             }
@@ -1202,6 +1345,7 @@
             updatePowerUpStatus();
             updateParticles();
             updateScore();
+            updateSpeedometer();
             increaseSpeed();
 
             game.obstacles.forEach(drawObstacle);
@@ -1217,6 +1361,11 @@
                 e.preventDefault();
             }
             game.keys[e.key] = true;
+
+            if (e.key === 'p' || e.key === 'P') {
+                e.preventDefault();
+                togglePause();
+            }
             
             if (game.isMultiplayer) {
                 const key = e.key.toLowerCase();
@@ -1266,6 +1415,73 @@
             upBtn.addEventListener('mouseup', (e) => { e.preventDefault(); handleTouchEnd('ArrowUp'); });
             downBtn.addEventListener('mousedown', (e) => { e.preventDefault(); handleTouchStart('ArrowDown'); });
             downBtn.addEventListener('mouseup', (e) => { e.preventDefault(); handleTouchEnd('ArrowDown'); });
+        };
+
+        const setupSwipeControls = () => {
+            const area = document.getElementById('gameContainer');
+            const threshold = 30;
+
+            const trigger = (dir) => {
+                const now = Date.now();
+                if (now - game.swipe.lastTrigger < 80) return;
+                game.swipe.lastTrigger = now;
+                if (dir === 'left') {
+                    game.keys['ArrowLeft'] = true; setTimeout(() => game.keys['ArrowLeft'] = false, 120);
+                } else if (dir === 'right') {
+                    game.keys['ArrowRight'] = true; setTimeout(() => game.keys['ArrowRight'] = false, 120);
+                } else if (dir === 'up') {
+                    game.keys['ArrowUp'] = true; setTimeout(() => game.keys['ArrowUp'] = false, 150);
+                } else if (dir === 'down') {
+                    game.keys['ArrowDown'] = true; setTimeout(() => game.keys['ArrowDown'] = false, 150);
+                }
+            };
+
+            area.addEventListener('touchstart', (e) => {
+                if (game.controlMode !== 'swipe') return;
+                const t = e.touches[0];
+                game.swipe.active = true;
+                game.swipe.startX = t.clientX;
+                game.swipe.startY = t.clientY;
+            }, { passive: true });
+
+            area.addEventListener('touchmove', (e) => {
+                if (game.controlMode !== 'swipe' || !game.swipe.active) return;
+                const t = e.touches[0];
+                const dx = t.clientX - game.swipe.startX;
+                const dy = t.clientY - game.swipe.startY;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > threshold) { trigger('right'); game.swipe.startX = t.clientX; }
+                    else if (dx < -threshold) { trigger('left'); game.swipe.startX = t.clientX; }
+                } else {
+                    if (dy > threshold) { trigger('down'); game.swipe.startY = t.clientY; }
+                    else if (dy < -threshold) { trigger('up'); game.swipe.startY = t.clientY; }
+                }
+            }, { passive: true });
+
+            area.addEventListener('touchend', () => {
+                if (game.controlMode !== 'swipe') return;
+                game.swipe.active = false;
+            });
+        };
+
+        const applyDifficulty = () => {
+            const d = game.difficulty;
+            if (d === 'easy') {
+                game.baseSpeed = 2.5;
+                game.speed = 2.5;
+                game.obstacleInterval = 1800;
+                game.powerUpInterval = 4000;
+            } else if (d === 'hard') {
+                game.baseSpeed = 3.8;
+                game.speed = 3.8;
+                game.obstacleInterval = 1100;
+                game.powerUpInterval = 6500;
+            } else {
+                game.baseSpeed = 3.0;
+                game.speed = 3.0;
+                game.obstacleInterval = 1500;
+                game.powerUpInterval = 5000;
+            }
         };
 
         const setupMenu = () => {
@@ -1323,12 +1539,87 @@
             gameOverScreen.style.display = 'none';
             gameOverScreen.classList.remove('show');
             menuScreen.style.display = 'block';
+            game.isPaused = false;
+            pauseOverlay.style.display = 'none';
+            try {
+                const best = parseInt(localStorage.getItem('race_best') || '0', 10);
+                bestScoreText.textContent = `Record: ${best}`;
+            } catch (_) {}
+        });
+
+        function togglePause() {
+            if (!game.isRunning) return;
+            game.isPaused = !game.isPaused;
+            pauseOverlay.style.display = game.isPaused ? 'block' : 'none';
+            if (game.isPaused) { syncControlModeSelect(); }
+        }
+
+        pauseButton.addEventListener('click', () => {
+            togglePause();
+        });
+
+        resumeButton.addEventListener('click', () => {
+            if (game.isPaused) togglePause();
         });
 
         setupTouchControls();
+        setupSwipeControls();
         setupMenu();
         setupShareButtons();
         initWeather();
+        // Show pause button on touch devices and small screens
+        if (window.matchMedia('(hover: none), (max-width: 768px)').matches) {
+            pauseButton.style.display = 'block';
+        } else {
+            pauseButton.style.display = 'block';
+        }
+
+        const updateControlVisibility = () => {
+            const tc = document.getElementById('touchControls');
+            if (game.controlMode === 'swipe') {
+                tc.style.display = 'none';
+                maybeShowSwipeHint();
+            } else {
+                tc.style.display = 'flex';
+            }
+        };
+
+        controlModeSelect.addEventListener('change', () => {
+            game.controlMode = controlModeSelect.value;
+            updateControlVisibility();
+        });
+
+        pauseDifficultySelect.addEventListener('change', () => {
+            game.difficulty = pauseDifficultySelect.value;
+            applyDifficulty();
+        });
+
+        muteToggle.addEventListener('change', () => {
+            game.muted = muteToggle.checked;
+            try { localStorage.setItem('race_muted', game.muted ? '1' : '0'); } catch(_) {}
+        });
+
+        updateControlVisibility();
+
+        // keep select in sync when toggling pause
+        function syncControlModeSelect() {
+            if (controlModeSelect) controlModeSelect.value = game.controlMode;
+            if (pauseDifficultySelect) pauseDifficultySelect.value = game.difficulty;
+            if (muteToggle) muteToggle.checked = !!game.muted;
+        }
+
+        function maybeShowSwipeHint() {
+            try {
+                const shown = localStorage.getItem('swipe_hint_shown') === '1';
+                if (shown) return;
+                swipeHint.style.display = 'block';
+                setTimeout(() => { swipeHint.style.display = 'none'; }, 2500);
+                localStorage.setItem('swipe_hint_shown', '1');
+            } catch (_) {
+                swipeHint.style.display = 'block';
+                setTimeout(() => { swipeHint.style.display = 'none'; }, 2500);
+            }
+        }
     </script>
 </body>
 </html>
