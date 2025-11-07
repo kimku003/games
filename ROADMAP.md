@@ -56,8 +56,15 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
 ## 🔊 Audio
 - [ ] Musique de fond
   - Thème musical dynamique selon la vitesse / difficulté
-- [ ] Effets sonores
-  - Moteur, klaxon, collision, ramassage de power‑ups, accélération
+- [x] Effets sonores (implémentés partiellement)
+  - [x] Moteur (Web Audio, dynamique selon vitesse)
+  - [x] Collisions (burst bruit)
+  - [x] Power‑ups (sweeps)
+  - [ ] Klaxon
+  - [ ] Accélération (SFX dédié)
+- [x] Contrôles audio
+  - [x] Muet global (préférence mémorisée)
+  - [x] Réglage volumes moteur / effets
 - [ ] Sons d'ambiance
   - Bruits de circulation, environnement urbain / campagne
 
