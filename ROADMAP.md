@@ -71,7 +71,7 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
 - [ ] Système de pièces
   - Ramasser des pièces pour acheter des améliorations (warp shop)
 - [x] Niveaux de difficulté
-  - Facile, Moyen, Difficile (sélection au démarrage)
+  - Facile, Moyen, Difficile (réglable dans le menu Pause)
 - [ ] Missions / objectifs
   - Ex. : "Parcourir 1000m sans collision", "Ramasser 5 power‑ups"
 
@@ -79,9 +79,10 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
 
 ## 🎯 Interface utilisateur
 - [x] Écran de démarrage
-  - Menu avec instructions, sélection de difficulté, et options
+  - Menu avec instructions et options (la difficulté est déplacée dans Pause)
 - [x] Pause
-  - Touche P pour mettre en pause (ou bouton mobile)
+  - Bouton ⏸️ flottant et touche P
+  - Panneau de réglages dans Pause: Mode de contrôle (Touches/Swipe), Difficulté, Muet (préférence mémorisée)
 - [x] Indicateur de vitesse
   - Compteur de vitesse visuel
 - [ ] Mini‑map
@@ -90,12 +91,15 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
   - Visible si le système de vies est activé
 - [x] Thèmes personnalisables
   - Changer la couleur/design de la voiture (cosmétiques)
+- [x] Contrôles tactiles minimalistes
+  - Boutons directionnels sans icônes, masqués en mode Swipe
+  - Astuce "Swipe" affichée une seule fois
 
 ---
 
 ## 🛠️ Améliorations techniques
 - [x] Contrôles tactiles
-  - Boutons virtuels et support swipe pour mobile
+  - Boutons virtuels et support swipe pour mobile, bascule Touches/Swipe depuis Pause
 - [ ] Optimisation mobile
   - Performance, réduction des allocations mémoire, images adaptées
 - [x] Partage de score
