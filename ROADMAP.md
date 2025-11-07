@@ -80,6 +80,8 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
 ## 🎯 Interface utilisateur
 - [x] Écran de démarrage
   - Menu avec instructions et options (la difficulté est déplacée dans Pause)
+- [x] Lien public du jeu
+  - https://kimku003.github.io/games/race.html
 - [x] Pause
   - Bouton ⏸️ flottant et touche P
   - Panneau de réglages dans Pause: Mode de contrôle (Touches/Swipe), Difficulté, Muet (préférence mémorisée)
@@ -103,7 +105,7 @@ Feuille de route pour l'amélioration et le développement du jeu. Les sections 
 - [ ] Optimisation mobile
   - Performance, réduction des allocations mémoire, images adaptées
 - [x] Partage de score
-  - Boutons pour partager le record sur les réseaux sociaux
+  - Boutons pour partager le record sur les réseaux sociaux (URL publique intégrée)
 - [ ] Architecture et qualité
   - Séparer logique de rendu, tests unitaires sur la logique de jeu
 - [ ] Localisation
